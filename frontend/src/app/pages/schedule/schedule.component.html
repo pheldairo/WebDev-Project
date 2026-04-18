@@ -1,0 +1,123 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-left">
+    <button class="btn-back" (click)="goToRooms()">← Комнаты</button>
+    <div class="nav-logo">📅 UniSchedule</div>
+  </div>
+  <div class="nav-right">
+    <button class="btn-voice" disabled title="Скоро">
+      🎙️ Голосовой чат
+      <span class="coming-soon">Скоро</span>
+    </button>
+    <span class="username">👤 {{ username }}</span>
+    <button class="btn-outline" (click)="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="page">
+  <!-- ERROR -->
+  @if (error) {
+    <div class="msg error">❌ {{ error }}</div>
+  }
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h1>Расписание</h1>
+      <p class="page-sub">Комната #{{ roomId }} · обновляется каждые 10 сек 🔄</p>
+    </div>
+    <button class="btn-primary" (click)="openModal()">+ Добавить занятие</button>
+  </div>
+
+  <!-- SCHEDULE GRID -->
+  <div class="schedule-wrapper">
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th class="time-col">Время</th>
+          @for (day of days; track day) {
+            <th>{{ dayLabels[day] }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (time of timeSlots; track time) {
+          <tr>
+            <td class="time-cell">{{ time }}</td>
+            @for (day of days; track day) {
+              <td class="slot-cell">
+                @for (entry of getEntriesForSlot(day, time); track entry.id) {
+                  <div
+                    class="entry-card"
+                    [style.border-left-color]="getColor(entry)"
+                    [style.background]="getColor(entry) + '22'"
+                    (click)="openModal(entry)"
+                  >
+                    <span class="entry-subject">{{ entry.subject }}</span>
+                    <span class="entry-teacher">{{ entry.teacher }}</span>
+                    <span class="entry-author" [style.color]="getColor(entry)">
+                      {{ entry.created_by_username }}
+                    </span>
+                    <button
+                      class="delete-btn"
+                      (click)="$event.stopPropagation(); deleteEntry(entry.id)"
+                    >✕</button>
+                  </div>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+@if (showModal) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingEntry ? 'Редактировать' : 'Новое занятие' }}</h2>
+        <button class="close-btn" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label>Предмет</label>
+        <input [(ngModel)]="form.subject" type="text" placeholder="Математика" />
+      </div>
+
+      <div class="form-group">
+        <label>Преподаватель</label>
+        <input [(ngModel)]="form.teacher" type="text" placeholder="Иванов А.П." />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>День</label>
+          <select [(ngModel)]="form.day">
+            @for (day of days; track day) {
+              <option [value]="day">{{ dayLabels[day] }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Время</label>
+          <select [(ngModel)]="form.time_slot">
+            @for (time of timeSlots; track time) {
+              <option [value]="time">{{ time }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-outline" (click)="closeModal()">Отмена</button>
+        <button class="btn-primary" (click)="saveEntry()" [disabled]="loading">
+          {{ loading ? 'Сохраняем...' : (editingEntry ? 'Сохранить' : 'Добавить') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

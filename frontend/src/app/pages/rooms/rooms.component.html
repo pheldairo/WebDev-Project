@@ -1,0 +1,90 @@
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">📅 UniSchedule</div>
+  <div class="nav-right">
+    <span class="username">👤 {{ username }}</span>
+    <button class="btn-outline" (click)="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="page">
+  <h1 class="page-title">Комнаты</h1>
+  <p class="page-sub">Создай новую комнату или войди по коду</p>
+
+  <!-- MESSAGES -->
+  @if (error) {
+    <div class="msg error">❌ {{ error }}</div>
+  }
+  @if (success) {
+    <div class="msg success">✅ {{ success }}</div>
+  }
+
+  <div class="cards-row">
+    <!-- CREATE ROOM -->
+    <div class="card">
+      <div class="card-icon">🏠</div>
+      <h2>Создать комнату</h2>
+      <p>Создай комнату для своей группы и получи уникальный код</p>
+      <div class="form-group">
+        <label>Название комнаты</label>
+        <input
+          [(ngModel)]="newRoomName"
+          type="text"
+          placeholder="Например: SE-2301"
+        />
+      </div>
+      <button class="btn-primary" (click)="createRoom()" [disabled]="loading">
+        {{ loading ? 'Создаём...' : 'Создать' }}
+      </button>
+    </div>
+
+    <!-- JOIN ROOM -->
+    <div class="card">
+      <div class="card-icon">🔑</div>
+      <h2>Войти по коду</h2>
+      <p>Введи 8-значный код который тебе дал создатель комнаты</p>
+      <div class="form-group">
+        <label>Код комнаты</label>
+        <input
+          [(ngModel)]="joinCode"
+          type="text"
+          placeholder="XXXXXXXX"
+          maxlength="8"
+        />
+      </div>
+      <button class="btn-primary" (click)="joinRoom()" [disabled]="loading">
+        {{ loading ? 'Входим...' : 'Войти' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ROOMS LIST -->
+  @if (rooms.length > 0) {
+    <div class="section">
+      <h2>Мои комнаты</h2>
+      <div class="rooms-grid">
+        @for (room of rooms; track room.id) {
+          <div class="room-card" (click)="goToSchedule(room.id)">
+            <div class="room-header">
+              <span class="room-name">{{ room.name }}</span>
+              <span class="room-code">{{ room.code }}</span>
+            </div>
+            <div class="room-footer">
+              <span class="participants">
+                👥 {{ room.participants_count }} участников
+              </span>
+              <span class="go-arrow">→</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (rooms.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p>У тебя пока нет комнат. Создай или войди по коду!</p>
+    </div>
+  }
+</div>
