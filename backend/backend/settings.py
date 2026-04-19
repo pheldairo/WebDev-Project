@@ -1,4 +1,3 @@
-# Hi
 from pathlib import Path
 import os
 
@@ -11,6 +10,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
+    'daphne', # Daphne должен быть первым
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -21,10 +21,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'channels',
     'backend.apps.users.apps.UsersConfig',
     'backend.apps.rooms.apps.RoomsConfig',
     'backend.apps.schedule.apps.ScheduleConfig',
     'backend.apps.university.apps.UniversityConfig',
+    'backend.apps.voicechat.apps.VoicechatConfig',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +59,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer', # Исправлена опечатка InMemmory -> InMemory
+    },
+}
 
 DATABASES = {
     'default': {
