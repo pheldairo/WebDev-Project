@@ -6,21 +6,12 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:8000",
-      "type": "string"
-    },
-    {
-      "key": "access_token",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "refresh_token",
-      "value": "",
-      "type": "string"
-    }
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "access_token", "value": "", "type": "string" },
+    { "key": "refresh_token", "value": "", "type": "string" },
+    { "key": "room_code", "value": "", "type": "string" },
+    { "key": "room_id", "value": "", "type": "string" },
+    { "key": "entry_id", "value": "", "type": "string" }
   ],
   "item": [
     {
@@ -30,18 +21,12 @@
           "name": "Register",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"securepassword123\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/auth/register/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "register", ""]
-            }
+            "url": { "raw": "{{base_url}}/api/auth/register/", "host": ["{{base_url}}"], "path": ["api", "auth", "register", ""] }
           },
           "event": [
             {
@@ -61,18 +46,12 @@
           "name": "Login",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"securepassword123\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/auth/login/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "login", ""]
-            }
+            "url": { "raw": "{{base_url}}/api/auth/login/", "host": ["{{base_url}}"], "path": ["api", "auth", "login", ""] }
           },
           "event": [
             {
@@ -89,6 +68,29 @@
           ]
         },
         {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/api/auth/profile/", "host": ["{{base_url}}"], "path": ["api", "auth", "profile", ""] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"semester\": 3,\n  \"major\": 1\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/auth/profile/", "host": ["{{base_url}}"], "path": ["api", "auth", "profile", ""] }
+          }
+        },
+        {
           "name": "Logout",
           "request": {
             "method": "POST",
@@ -96,15 +98,8 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{access_token}}" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/auth/logout/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "logout", ""]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}" },
+            "url": { "raw": "{{base_url}}/api/auth/logout/", "host": ["{{base_url}}"], "path": ["api", "auth", "logout", ""] }
           }
         }
       ]
@@ -112,6 +107,14 @@
     {
       "name": "Rooms",
       "item": [
+        {
+          "name": "List My Rooms",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/api/rooms/", "host": ["{{base_url}}"], "path": ["api", "rooms", ""] }
+          }
+        },
         {
           "name": "Create Room",
           "request": {
@@ -122,13 +125,9 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Computer Science - Section A\"\n}"
+              "raw": "{\n  \"name\": \"Study Group\",\n  \"password\": \"room123\",\n  \"category\": \"UNIVERSITY\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/rooms/create/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "rooms", "create", ""]
-            }
+            "url": { "raw": "{{base_url}}/api/rooms/create/", "host": ["{{base_url}}"], "path": ["api", "rooms", "create", ""] }
           },
           "event": [
             {
@@ -154,13 +153,22 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"{{room_code}}\"\n}"
+              "raw": "{\n  \"code\": \"{{room_code}}\",\n  \"password\": \"room123\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/rooms/join/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "rooms", "join", ""]
-            }
+            "url": { "raw": "{{base_url}}/api/rooms/join/", "host": ["{{base_url}}"], "path": ["api", "rooms", "join", ""] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "University",
+      "item": [
+        {
+          "name": "List Academic Slots",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/api/university/slots/", "host": ["{{base_url}}"], "path": ["api", "university", "slots", ""] }
           }
         }
       ]
@@ -172,35 +180,12 @@
           "name": "List Schedule Entries",
           "request": {
             "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/schedule/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "schedule", ""]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/api/schedule/?room={{room_id}}", "host": ["{{base_url}}"], "path": ["api", "schedule", ""], "query": [{ "key": "room", "value": "{{room_id}}" }] }
           }
         },
         {
-          "name": "List Schedule Entries by Room",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/schedule/?room={{room_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "schedule", ""],
-              "query": [
-                { "key": "room", "value": "{{room_id}}" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Schedule Entry",
+          "name": "Confirm Academic Selection",
           "request": {
             "method": "POST",
             "header": [
@@ -209,105 +194,52 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"subject\": \"Mathematics\",\n  \"teacher\": \"Dr. Smith\",\n  \"day\": \"MON\",\n  \"time_slot\": \"08:00-10:00\",\n  \"room\": {{room_id}}\n}"
+              "raw": "{\n  \"room\": {{room_id}},\n  \"slots\": [1, 2, 3]\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/schedule/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "schedule", ""]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var json = pm.response.json();",
-                  "pm.collectionVariables.set('entry_id', json.id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Get Schedule Entry",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/schedule/{{entry_id}}/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "schedule", "{{entry_id}}", ""]
-            }
+            "url": { "raw": "{{base_url}}/api/schedule/confirm-selection/", "host": ["{{base_url}}"], "path": ["api", "schedule", "confirm-selection", ""] }
           }
         },
         {
-          "name": "Update Schedule Entry (PUT)",
+          "name": "Create Manual Entry (Note)",
           "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{access_token}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"subject\": \"Advanced Mathematics\",\n  \"teacher\": \"Dr. Johnson\",\n  \"day\": \"MON\",\n  \"time_slot\": \"08:00-10:00\",\n  \"room\": {{room_id}}\n}"
+              "raw": "{\n  \"subject\": \"Buy groceries\",\n  \"teacher\": \"Me\",\n  \"day\": \"MON\",\n  \"time_slot\": \"18:00-19:00\",\n  \"room\": {{room_id}},\n  \"description\": \"Must buy milk\"\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/schedule/{{entry_id}}/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "schedule", "{{entry_id}}", ""]
-            }
+            "url": { "raw": "{{base_url}}/api/schedule/", "host": ["{{base_url}}"], "path": ["api", "schedule", ""] }
           }
         },
         {
-          "name": "Partial Update Schedule Entry (PATCH)",
+          "name": "Get Schedule Entry",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/api/schedule/{{entry_id}}/", "host": ["{{base_url}}"], "path": ["api", "schedule", "{{entry_id}}", ""] }
+          }
+        },
+        {
+          "name": "Update Entry",
           "request": {
             "method": "PATCH",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{access_token}}" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"teacher\": \"Prof. Williams\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/schedule/{{entry_id}}/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "schedule", "{{entry_id}}", ""]
-            }
+            "body": { "mode": "raw", "raw": "{\n  \"is_private\": true\n}" },
+            "url": { "raw": "{{base_url}}/api/schedule/{{entry_id}}/", "host": ["{{base_url}}"], "path": ["api", "schedule", "{{entry_id}}", ""] }
           }
         },
         {
-          "name": "Delete Schedule Entry",
+          "name": "Delete Entry",
           "request": {
             "method": "DELETE",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/schedule/{{entry_id}}/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "schedule", "{{entry_id}}", ""]
-            }
-          }
-        },
-        {
-          "name": "My Schedule Entries",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/schedule/mine/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "schedule", "mine", ""]
-            }
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/api/schedule/{{entry_id}}/", "host": ["{{base_url}}"], "path": ["api", "schedule", "{{entry_id}}", ""] }
           }
         }
       ]

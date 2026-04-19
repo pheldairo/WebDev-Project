@@ -1,3 +1,4 @@
+from django.urls import path
 from backend.apps.rooms.views import join_room, CreateRoomView, RoomListView
 
 urlpatterns = [

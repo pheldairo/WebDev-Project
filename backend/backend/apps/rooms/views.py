@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 
 from backend.apps.rooms.models import Room, Participant
 from backend.apps.rooms.serializers import (
@@ -78,3 +79,11 @@ class CreateRoomView(APIView):
             )
             return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RoomListView(ListAPIView):
+    serializer_class = RoomSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Room.objects.filter(participants__user=self.request.user)
