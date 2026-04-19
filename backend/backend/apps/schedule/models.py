@@ -23,6 +23,19 @@ class ScheduleEntry(models.Model):
         on_delete=models.CASCADE,
         related_name='schedule_entries',
     )
+    academic_slot = models.ForeignKey(
+        'university.AcademicSlot',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='schedule_entries'
+    )
+    entry_type = models.CharField(
+        max_length=10,
+        choices=[('ACADEMIC', 'Academic'), ('NOTE', 'Note')],
+        default='NOTE'
+    )
+    is_private = models.BooleanField(default=False)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

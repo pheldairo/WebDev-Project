@@ -58,3 +58,19 @@ class LogoutView(APIView):
             return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_205_RESET_CONTENT)
         except Exception:
             return Response({'detail': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserModelSerializer(request.user)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        from .serializers import ProfileSerializer
+        serializer = ProfileSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(UserModelSerializer(request.user).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

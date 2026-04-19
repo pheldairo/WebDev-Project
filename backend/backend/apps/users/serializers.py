@@ -1,29 +1,30 @@
 from rest_framework import serializers
-from backend.apps.users.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
-class RegisterSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150)
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, min_length=6)
+class UserModelSerializer(serializers.ModelSerializer):
+    major_name = serializers.CharField(source='major.name', read_only=True)
 
-    def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError('Username already taken.')
-        return value
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email', 'profile_picture', 
+            'major', 'major_name', 'semester'
+        ]
+        read_only_fields = ['id', 'username', 'email']
 
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError('Email already registered.')
-        return value
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password'],
-        )
-        return user
+        return User.objects.create_user(**validated_data)
 
 
 class LoginSerializer(serializers.Serializer):
@@ -31,8 +32,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
 
-class UserModelSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'date_joined']
-        read_only_fields = ['id', 'date_joined']
+        fields = ['profile_picture', 'major', 'semester']

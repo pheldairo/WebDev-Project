@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -6,6 +7,7 @@ from rest_framework.views import APIView
 
 from backend.apps.rooms.models import Room
 from backend.apps.schedule.models import ScheduleEntry
+from backend.apps.university.models import AcademicSlot
 from backend.apps.schedule.serializers import ScheduleEntrySerializer, ScheduleEntryWriteSerializer
 
 
@@ -15,9 +17,15 @@ class ScheduleListCreateView(APIView):
     def get(self, request):
         room_id = request.query_params.get('room')
         if room_id:
-            entries = ScheduleEntry.objects.filter(room_id=room_id)
+            # Show entries that are public OR owned by the user
+            entries = ScheduleEntry.objects.filter(
+                Q(room_id=room_id) & 
+                (Q(is_private=False) | Q(created_by=request.user))
+            )
         else:
-            entries = ScheduleEntry.objects.all()
+            # Default to user's entries if no room specified
+            entries = ScheduleEntry.objects.filter(created_by=request.user)
+            
         serializer = ScheduleEntrySerializer(entries, many=True)
         return Response(serializer.data)
 
@@ -34,9 +42,54 @@ class ScheduleListCreateView(APIView):
                 description=data.get('description'),
                 room=room,
                 created_by=request.user,
+                entry_type='NOTE', # Default for manual entries
+                is_private=False # Notes are public by default
             )
             return Response(ScheduleEntrySerializer(entry).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ConfirmSelectionView(APIView):
+    """
+    Takes a list of AcademicSlot IDs and a Room ID, then creates private ScheduleEntries.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        slot_ids = request.data.get('slots', [])
+        room_id = request.data.get('room')
+        
+        if not room_id:
+            return Response({'detail': 'room id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            room = Room.objects.get(id=room_id)
+        except Room.DoesNotExist:
+            return Response({'detail': 'Room not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+        slots = AcademicSlot.objects.filter(id__in=slot_ids)
+        new_entries = []
+        
+        for slot in slots:
+            # Check if an entry for this slot already exists for this user in this room
+            if not ScheduleEntry.objects.filter(room=room, academic_slot=slot, created_by=request.user).exists():
+                entry = ScheduleEntry.objects.create(
+                    subject=slot.course.name,
+                    teacher=slot.teacher,
+                    day=slot.day,
+                    time_slot=slot.time_slot,
+                    room=room,
+                    academic_slot=slot,
+                    created_by=request.user,
+                    entry_type='ACADEMIC',
+                    is_private=True # Academic slots are private to the user
+                )
+                new_entries.append(entry)
+                
+        return Response(
+            ScheduleEntrySerializer(new_entries, many=True).data,
+            status=status.HTTP_201_CREATED
+        )
 
 
 class ScheduleDetailView(APIView):
