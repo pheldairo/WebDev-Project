@@ -16,6 +16,7 @@ class ScheduleEntrySerializer(serializers.ModelSerializer):
             'time_slot',
             'room',
             'room_code',
+            'description',
             'created_by',
             'created_by_username',
             'created_at',
@@ -31,6 +32,7 @@ class ScheduleEntryWriteSerializer(serializers.Serializer):
         'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'
     ])
     time_slot = serializers.CharField(max_length=50)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     room = serializers.IntegerField()
 
     def validate_room(self, value):

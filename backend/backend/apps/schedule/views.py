@@ -31,6 +31,7 @@ class ScheduleListCreateView(APIView):
                 teacher=data['teacher'],
                 day=data['day'],
                 time_slot=data['time_slot'],
+                description=data.get('description'),
                 room=room,
                 created_by=request.user,
             )
@@ -68,6 +69,7 @@ class ScheduleDetailView(APIView):
             entry.teacher = data['teacher']
             entry.day = data['day']
             entry.time_slot = data['time_slot']
+            entry.description = data.get('description', entry.description)
             entry.room = room
             entry.save()
             return Response(ScheduleEntrySerializer(entry).data)
@@ -83,6 +85,7 @@ class ScheduleDetailView(APIView):
                 'teacher': request.data.get('teacher', entry.teacher),
                 'day': request.data.get('day', entry.day),
                 'time_slot': request.data.get('time_slot', entry.time_slot),
+                'description': request.data.get('description', entry.description),
                 'room': request.data.get('room', entry.room.id),
             },
             context={'instance': entry},
