@@ -5,13 +5,11 @@ User = get_user_model()
 
 
 class UserModelSerializer(serializers.ModelSerializer):
-    major_name = serializers.CharField(source='major.name', read_only=True)
-
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'profile_picture', 
-            'major', 'major_name', 'semester'
+            'saved_slots'
         ]
         read_only_fields = ['id', 'username', 'email']
 
@@ -35,4 +33,4 @@ class LoginSerializer(serializers.Serializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['profile_picture', 'major', 'semester']
+        fields = ['profile_picture', 'saved_slots']

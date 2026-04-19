@@ -6,7 +6,7 @@ import { switchMap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class ScheduleService {
-  private api = 'http://localhost:8000/api';
+  private api = `http://${window.location.hostname}:8000/api`;
 
   constructor(private http: HttpClient) {}
 

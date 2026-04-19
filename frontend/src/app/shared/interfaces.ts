@@ -3,8 +3,7 @@ export interface User {
   username: string;
   email: string;
   profile_picture?: string;
-  major?: number;
-  semester?: number;
+  saved_slots?: number[];
   date_joined?: string;
 }
 

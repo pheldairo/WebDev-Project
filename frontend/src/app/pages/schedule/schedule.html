@@ -10,8 +10,10 @@
     </div>
     
     <div class="voice-controls">
-      <div class="voice-status"></div>
-      <button class="voice-btn">Join Voice</button>
+      <div class="voice-status" [ngClass]="{'active': isVoiceActive()}"></div>
+      <button class="voice-btn" (click)="toggleVoice()">
+        {{ isVoiceActive() ? 'Leave Voice' : 'Join Voice' }}
+      </button>
     </div>
   </nav>
 
@@ -21,15 +23,28 @@
       <div class="collaboration-status card">
         <h3>Live Presence</h3>
         <ul class="user-list">
-          <li><span class="dot outline"></span> Waiting for others...</li>
-          <li><span class="dot green"></span> You (Online)</li>
+          <li *ngIf="participants().length === 0"><span class="dot outline"></span> Waiting for others...</li>
+          <li *ngFor="let p of participants()">
+            <span class="dot" [style.background-color]="p.color"></span> 
+            {{ p.username }}
+          </li>
         </ul>
       </div>
 
-      <div class="actions card">
-        <button class="btn-secondary w-full block mt-2" *ngIf="room()?.category === 'UNIVERSITY' || true" (click)="openAcademicPicker()">
-          🎓 Academic Picker
-        </button>
+      <div class="academic-list card">
+        <h3>🎓 Academic Slots</h3>
+        <div *ngIf="academicSlots().length === 0" class="empty-state">
+          No academic slots available at this time.
+        </div>
+        <div class="slot-list sidebar-list">
+          <label class="slot-item" *ngFor="let slot of academicSlots()">
+            <input type="checkbox" [checked]="selectedSlots.has(slot.id)" (change)="toggleSlotSelection(slot.id)" />
+            <div class="slot-details">
+              <strong>{{ slot.subject }}</strong> - {{ slot.day }} {{ slot.time_slot }}
+            </div>
+          </label>
+        </div>
+        <button class="btn-primary w-full block mt-2" [disabled]="selectedSlots.size === 0" (click)="confirmSelection()">Sync to Schedule</button>
       </div>
     </aside>
 
@@ -66,30 +81,4 @@
   </div>
 </div>
 
-<!-- Modal Picker -->
-<div class="modal-overlay" *ngIf="isPickerOpen()">
-  <div class="modal-content card">
-    <div class="modal-header">
-      <h2>Available University Slots</h2>
-      <button class="close-btn" (click)="closeAcademicPicker()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div *ngIf="academicSlots().length === 0" class="empty-state">
-        No slots available. Make sure your profile has Major and Semester set!
-      </div>
-      <div class="slot-list">
-        <label class="slot-item card" *ngFor="let slot of academicSlots()">
-          <input type="checkbox" (change)="toggleSlotSelection(slot.id)" />
-          <div class="slot-details">
-            <strong>{{ slot.subject }}</strong> - {{ slot.day }} {{ slot.time_slot }}
-            <br> <small>{{ slot.teacher }}</small>
-          </div>
-        </label>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <span class="selected-count">{{ selectedSlots.size }} selected</span>
-      <button class="btn-primary" [disabled]="selectedSlots.size === 0" (click)="confirmSelection()">Confirm Add</button>
-    </div>
-  </div>
-</div>
+

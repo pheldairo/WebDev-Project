@@ -87,3 +87,17 @@ class RoomListView(ListAPIView):
 
     def get_queryset(self):
         return Room.objects.filter(participants__user=self.request.user)
+
+class RoomParticipantsView(ListAPIView):
+    serializer_class = ParticipantModelSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        room_id = self.kwargs.get('room_id')
+        return Participant.objects.filter(room_id=room_id)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def leave_room(request, room_id):
+    Participant.objects.filter(user=request.user, room_id=room_id).delete()
+    return Response(status=status.HTTP_200_OK)

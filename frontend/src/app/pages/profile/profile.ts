@@ -24,8 +24,6 @@ export class ProfileComponent implements OnInit {
 
   constructor() {
     this.profileForm = this.fb.group({
-      major: [null, Validators.required],
-      semester: [null, [Validators.required, Validators.min(1), Validators.max(10)]]
     });
   }
 
@@ -36,10 +34,6 @@ export class ProfileComponent implements OnInit {
   loadProfile() {
     this.api.get<User>('auth/profile/').subscribe(data => {
       this.profile = data;
-      this.profileForm.patchValue({
-        major: data.major,
-        semester: data.semester
-      });
       this.loading = false;
     });
   }

@@ -20,17 +20,11 @@ export class RegisterComponent {
   username = '';
   email = '';
   password = '';
-  major: number | null = null;
-  semester: number | null = null;
 
   error = '';
   loading = false;
 
   register() {
-    if(!this.major || !this.semester) {
-      this.error = 'Major and Semester are required';
-      return;
-    }
 
     this.loading = true;
     this.error = '';
@@ -46,17 +40,7 @@ export class RegisterComponent {
         // The backend returns access/refresh tokens directly upon register!
         this.auth.saveTokens(res.access, res.refresh);
         this.auth.saveUser(res.user);
-        
-        // Now update profile to set major and semester
-        this.api.patch('auth/profile/', { major: this.major, semester: this.semester }).subscribe({
-          next: () => {
-            this.router.navigate(['/rooms']);
-          },
-          error: () => {
-            // Even if major fails, user is registered and logged in
-            this.router.navigate(['/profile']);
-          }
-        });
+        this.router.navigate(['/rooms']);
       },
       error: (err) => {
         this.error = 'Failed to register. Username or email might exist.';

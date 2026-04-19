@@ -4,7 +4,7 @@ import { Room, Participant } from '../shared/interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class RoomService {
-  private api = 'http://localhost:8000/api';
+  private api = `http://${window.location.hostname}:8000/api`;
 
   constructor(private http: HttpClient) {}
 
