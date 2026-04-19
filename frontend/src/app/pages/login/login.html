@@ -1,0 +1,32 @@
+<div class="auth-layout">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>Welcome Back</h1>
+      <p>Log in to access your schedules and rooms</p>
+    </div>
+
+    <form (ngSubmit)="login()" class="form">
+      <div class="form-group">
+        <label>Username</label>
+        <input [(ngModel)]="username" name="username" class="input" type="text" placeholder="Enter your username" required />
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input [(ngModel)]="password" name="password" class="input" type="password" placeholder="••••••••" required />
+      </div>
+
+      <div *ngIf="error" class="form-error">
+        {{ error }}
+      </div>
+
+      <button type="submit" class="btn-primary w-full block mt-2" [disabled]="loading || !username || !password">
+        {{ loading ? 'Signing in...' : 'Sign In' }}
+      </button>
+    </form>
+
+    <div class="switch-auth">
+      Don't have an account? <a routerLink="/register">Sign up for free</a>
+    </div>
+  </div>
+</div>

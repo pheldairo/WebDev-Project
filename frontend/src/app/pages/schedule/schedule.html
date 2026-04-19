@@ -1,0 +1,95 @@
+<div class="scheduler-layout" [ngClass]="room()?.category?.toLowerCase()">
+  <!-- Top Navigation -->
+  <nav class="navbar">
+    <div class="left-nav">
+      <a routerLink="/rooms" class="back-btn">← Back</a>
+      <div class="room-info" *ngIf="room()">
+        <h2>{{ room()?.name }}</h2>
+        <span class="category-badge">{{ room()?.category }} mode</span>
+      </div>
+    </div>
+    
+    <div class="voice-controls">
+      <div class="voice-status"></div>
+      <button class="voice-btn">Join Voice</button>
+    </div>
+  </nav>
+
+  <!-- Sidebar vs Main Content -->
+  <div class="main-content">
+    <aside class="tools-sidebar">
+      <div class="collaboration-status card">
+        <h3>Live Presence</h3>
+        <ul class="user-list">
+          <li><span class="dot outline"></span> Waiting for others...</li>
+          <li><span class="dot green"></span> You (Online)</li>
+        </ul>
+      </div>
+
+      <div class="actions card">
+        <button class="btn-secondary w-full block mt-2" *ngIf="room()?.category === 'UNIVERSITY' || true" (click)="openAcademicPicker()">
+          🎓 Academic Picker
+        </button>
+      </div>
+    </aside>
+
+    <div class="grid-container card">
+      <div class="loader" *ngIf="loading()">Syncing...</div>
+      
+      <div class="timeline" *ngIf="!loading()">
+        <!-- Timeline Header -->
+        <div class="timeline-header">
+          <div class="time-column-header">Time</div>
+          <div class="day-column-header" *ngFor="let day of days">{{ day }}</div>
+        </div>
+        
+        <!-- Timeline Body (Rows for each Time Slot) -->
+        <div class="timeline-row" *ngFor="let slot of uniqueTimeSlots()">
+          <div class="time-label">{{ slot }}</div>
+          
+          <div class="day-cell" *ngFor="let day of days">
+            <!-- Render entries that match this day AND this time slot -->
+            <div class="entry-card shadow-sm" *ngFor="let entry of getEntriesForDayAndSlot(day, slot)" 
+                 [ngClass]="[entry.entry_type.toLowerCase(), entry.is_private ? 'private' : 'shared']">
+              <div class="entry-subject">{{ entry.subject }}</div>
+              <div class="entry-meta">
+                <span *ngIf="entry.teacher">{{ entry.teacher }}</span>
+                <span class="owner">by {{ entry.created_by_username }}</span>
+                <span class="privacy" *ngIf="entry.is_private">🔒 Private</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Picker -->
+<div class="modal-overlay" *ngIf="isPickerOpen()">
+  <div class="modal-content card">
+    <div class="modal-header">
+      <h2>Available University Slots</h2>
+      <button class="close-btn" (click)="closeAcademicPicker()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="academicSlots().length === 0" class="empty-state">
+        No slots available. Make sure your profile has Major and Semester set!
+      </div>
+      <div class="slot-list">
+        <label class="slot-item card" *ngFor="let slot of academicSlots()">
+          <input type="checkbox" (change)="toggleSlotSelection(slot.id)" />
+          <div class="slot-details">
+            <strong>{{ slot.subject }}</strong> - {{ slot.day }} {{ slot.time_slot }}
+            <br> <small>{{ slot.teacher }}</small>
+          </div>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="selected-count">{{ selectedSlots.size }} selected</span>
+      <button class="btn-primary" [disabled]="selectedSlots.size === 0" (click)="confirmSelection()">Confirm Add</button>
+    </div>
+  </div>
+</div>

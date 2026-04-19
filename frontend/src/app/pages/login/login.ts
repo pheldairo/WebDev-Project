@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
@@ -8,16 +8,17 @@ import { CommonModule } from '@angular/common';
   selector: 'app-login',
   standalone: true,
   imports: [FormsModule, RouterLink, CommonModule],
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  templateUrl: './login.html',
+  styleUrl: './login.css'
 })
 export class LoginComponent {
+  public auth = inject(AuthService);
+  public router = inject(Router);
+
   username = '';
   password = '';
   error = '';
   loading = false;
-
-  constructor(private auth: AuthService, private router: Router) {}
 
   login() {
     this.loading = true;
@@ -29,7 +30,7 @@ export class LoginComponent {
         this.router.navigate(['/rooms']);
       },
       error: () => {
-        this.error = 'Неверный логин или пароль';
+        this.error = 'Invalid username or password';
         this.loading = false;
       }
     });

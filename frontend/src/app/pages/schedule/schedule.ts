@@ -1,149 +1,122 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ScheduleService } from '../../services/schedule';
-import { AuthService } from '../../services/auth';
-import { ScheduleEntry } from '../../shared/interfaces';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ApiService } from '../../core/services/api.service';
+import { ScheduleEntry, Room, AcademicSlot } from '../../shared/interfaces';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-schedule',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './schedule.component.html',
-  styleUrls: ['./schedule.component.css']
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  templateUrl: './schedule.html',
+  styleUrl: './schedule.css'
 })
 export class ScheduleComponent implements OnInit, OnDestroy {
-  roomId!: number;
-  entries: ScheduleEntry[] = [];
-  loading = false;
-  error = '';
-  showModal = false;
-  editingEntry: ScheduleEntry | null = null;
-  private pollSub!: Subscription;
+  private api = inject(ApiService);
+  private route = inject(ActivatedRoute);
+  private fb = inject(FormBuilder);
+
+  roomId: number = 0;
+  room = signal<Room | null>(null);
+  entries = signal<ScheduleEntry[]>([]);
+  academicSlots = signal<AcademicSlot[]>([]);
+  
+  loading = signal(true);
+  isPickerOpen = signal(false);
+  selectedSlots = new Set<number>();
 
   days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-  dayLabels: Record<string, string> = {
-    MON: 'Пн', TUE: 'Вт', WED: 'Ср',
-    THU: 'Чт', FRI: 'Пт', SAT: 'Сб'
-  };
-  timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'
-  ];
 
-  form: {
-  subject: string;
-  teacher: string;
-  day: 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN';
-  time_slot: string;
-} = {
-  subject: '',
-  teacher: '',
-  day: 'MON',
-  time_slot: '08:00'
-};
+  private pollSub?: Subscription;
 
-  username = '';
+  entryForm: FormGroup;
+  showEntryForm = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private scheduleService: ScheduleService,
-    private auth: AuthService
-  ) {}
+  constructor() {
+    this.entryForm = this.fb.group({
+      subject: ['', Validators.required],
+      day: ['MON', Validators.required],
+      time_slot: ['10:00-11:00', Validators.required],
+      entry_type: ['NOTE']
+    });
+  }
 
   ngOnInit() {
-    this.roomId = Number(this.route.snapshot.paramMap.get('id'));
-    this.username = this.auth.getUser()?.username || '';
-    this.pollSub = this.scheduleService.pollSchedule(this.roomId).subscribe({
-      next: (data) => { this.entries = data; },
-      error: () => { this.error = 'Ошибка загрузки расписания'; }
+    this.route.paramMap.subscribe(params => {
+      this.roomId = Number(params.get('id'));
+      this.loadRoomDetails();
+      this.loadSchedule();
+      this.startPolling();
     });
   }
 
   ngOnDestroy() {
-    this.pollSub?.unsubscribe();
+    if(this.pollSub) this.pollSub.unsubscribe();
   }
 
-  getEntriesForSlot(day: string, time: string): ScheduleEntry[] {
-    return this.entries.filter(e => e.day === day && e.time_slot === time);
+  loadRoomDetails() {
+    this.api.get<Room[]>(`rooms/`).subscribe(rooms => {
+      const current = rooms.find(r => r.id === this.roomId);
+      if(current) this.room.set(current);
+    });
   }
 
-  getColor(entry: ScheduleEntry): string {
-    const colors: Record<string, string> = {
-      'admin': '#00c896',
-    };
-    return colors[entry.created_by_username] || this.stringToColor(entry.created_by_username);
-  }
-
-  stringToColor(str: string): string {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const h = hash % 360;
-    return `hsl(${Math.abs(h)}, 70%, 55%)`;
-  }
-
-  openModal(entry?: ScheduleEntry) {
-    if (entry) {
-      this.editingEntry = entry;
-      this.form = {
-        subject: entry.subject,
-        teacher: entry.teacher,
-        day: entry.day as 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN',
-        time_slot: entry.time_slot
-};
-    } else {
-      this.editingEntry = null;
-      this.form = { subject: '', teacher: '', day: 'MON', time_slot: '08:00' };
-    }
-    this.showModal = true;
-  }
-
-  closeModal() {
-    this.showModal = false;
-    this.editingEntry = null;
-  }
-
-  saveEntry() {
-    if (!this.form.subject || !this.form.teacher) return;
-    this.loading = true;
-
-    const payload = { ...this.form, room: this.roomId };
-
-    if (this.editingEntry) {
-      this.scheduleService.updateEntry(this.editingEntry.id, payload).subscribe({
-        next: () => { this.closeModal(); this.loading = false; },
-        error: () => { this.error = 'Ошибка обновления'; this.loading = false; }
-      });
-    } else {
-      this.scheduleService.createEntry(payload).subscribe({
-        next: () => { this.closeModal(); this.loading = false; },
-        error: () => { this.error = 'Ошибка создания'; this.loading = false; }
-      });
-    }
-  }
-
-  deleteEntry(id: number) {
-    this.scheduleService.deleteEntry(id).subscribe({
-      next: () => {
-        this.entries = this.entries.filter(e => e.id !== id);
+  loadSchedule() {
+    this.api.get<ScheduleEntry[]>(`schedule/?room=${this.roomId}`).subscribe({
+      next: (data) => {
+        this.entries.set(data);
+        this.loading.set(false);
       },
-      error: () => { this.error = 'Ошибка удаления'; }
+      error: () => this.loading.set(false)
     });
   }
 
-  logout() {
-    this.auth.logout().subscribe({
-      next: () => { this.auth.clearAll(); this.router.navigate(['/login']); },
-      error: () => { this.auth.clearAll(); this.router.navigate(['/login']); }
+  startPolling() {
+    this.pollSub = setInterval(() => {
+      this.loadSchedule();
+    }, 10000) as any;
+  }
+
+  openAcademicPicker() {
+    this.isPickerOpen.set(true);
+    this.api.get<AcademicSlot[]>('university/slots/').subscribe(slots => {
+      this.academicSlots.set(slots);
     });
   }
 
-  goToRooms() {
-    this.router.navigate(['/rooms']);
+  closeAcademicPicker() {
+    this.isPickerOpen.set(false);
+    this.selectedSlots.clear();
+  }
+
+  toggleSlotSelection(id: number) {
+    if(this.selectedSlots.has(id)) {
+      this.selectedSlots.delete(id);
+    } else {
+      this.selectedSlots.add(id);
+    }
+  }
+
+  confirmSelection() {
+    if(this.selectedSlots.size === 0) return;
+    const body = {
+      room: this.roomId,
+      slots: Array.from(this.selectedSlots)
+    };
+    this.api.post('schedule/confirm-selection/', body).subscribe(() => {
+      this.closeAcademicPicker();
+      this.loadSchedule();
+    });
+  }
+
+  uniqueTimeSlots(): string[] {
+    const slots = new Set(this.entries().map(e => e.time_slot));
+    return Array.from(slots).sort();
+  }
+
+  getEntriesForDayAndSlot(day: string, slot: string): ScheduleEntry[] {
+    return this.entries().filter(e => e.day === day && e.time_slot === slot);
   }
 }

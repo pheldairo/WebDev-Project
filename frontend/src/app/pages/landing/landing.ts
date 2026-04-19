@@ -1,33 +1,37 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth';
+import { Component, inject } from '@angular/core';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
   imports: [RouterLink, CommonModule],
-  templateUrl: './landing.component.html',
-  styleUrls: ['./landing.component.css']
+  templateUrl: './landing.html',
+  styleUrl: './landing.css'
 })
 export class LandingComponent {
-  isLoggedIn = false;
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  public readonly themeService = inject(ThemeService);
 
-  constructor(private auth: AuthService, private router: Router) {
-    this.isLoggedIn = this.auth.isLoggedIn();
-  }
+  isLoggedIn = this.auth.isLoggedIn();
 
   logout() {
     this.auth.logout().subscribe({
       next: () => {
         this.auth.clearAll();
-        this.router.navigate(['/login']);
+        window.location.reload();
       },
       error: () => {
         this.auth.clearAll();
-        this.router.navigate(['/login']);
+        window.location.reload();
       }
     });
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
   }
 }

@@ -1,0 +1,52 @@
+<div class="page-container">
+  <nav class="navbar" style="padding: 0 0 24px 0; background: transparent; border: none;">
+    <a routerLink="/rooms" class="btn-secondary">← Back to Lobby</a>
+  </nav>
+
+  <div class="header">
+    <h1>Your Profile</h1>
+    <p>Setup your academic details for the schedule picker.</p>
+  </div>
+
+  <div class="card profile-card" *ngIf="!loading">
+    <div class="profile-header">
+      <div class="avatar">{{ profile?.username?.charAt(0) | uppercase }}</div>
+      <div class="user-info">
+        <h2>{{ profile?.username }}</h2>
+        <span class="email">{{ profile?.email }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="!profile?.major || !profile?.semester" class="warning-banner">
+      Please complete your profile to unlock Academic Scheduling.
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="form">
+      <div class="form-group">
+        <label>Major (ID)</label>
+        <input type="number" formControlName="major" class="input" placeholder="Enter Major ID" />
+      </div>
+
+      <div class="form-group">
+        <label>Semester</label>
+        <input type="number" formControlName="semester" class="input" placeholder="Current Semester (1-8)" />
+      </div>
+
+      <div class="form-actions">
+        <button [disabled]="profileForm.invalid" type="submit" class="btn-primary">
+          {{ saved ? 'Saved!' : 'Save Profile' }}
+        </button>
+      </div>
+    </form>
+
+    <div class="preferences-section">
+      <h3>Preferences</h3>
+      <div class="pref-item">
+        <span>App Theme</span>
+        <button class="btn-secondary theme-toggle" (click)="toggleTheme()">
+          {{ themeService.isDark() ? 'Switch to Light' : 'Switch to Dark' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

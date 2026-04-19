@@ -1,82 +1,106 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { RoomService } from '../../services/room';
-import { AuthService } from '../../services/auth';
+import { Router, RouterLink } from '@angular/router';
+import { ApiService } from '../../core/services/api.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { Room } from '../../shared/interfaces';
 
 @Component({
   selector: 'app-rooms',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './rooms.component.html',
-  styleUrls: ['./rooms.component.css']
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  templateUrl: './rooms.html',
+  styleUrl: './rooms.css'
 })
 export class RoomsComponent implements OnInit {
-  rooms: Room[] = [];
-  newRoomName = '';
-  joinCode = '';
-  error = '';
-  success = '';
-  loading = false;
-  username = '';
+  private api = inject(ApiService);
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  public themeService = inject(ThemeService);
 
-  constructor(
-    private roomService: RoomService,
-    private auth: AuthService,
-    private router: Router
-  ) {}
+  myRooms = signal<Room[]>([]);
+  loading = signal(true);
+  
+  createForm: FormGroup;
+  joinForm: FormGroup;
+
+  showCreate = false;
+  showJoin = false;
+  joinError = '';
+  createError = '';
+
+  constructor() {
+    this.createForm = this.fb.group({
+      name: ['', Validators.required],
+      category: ['UNIVERSITY', Validators.required],
+      password: ['']
+    });
+
+    this.joinForm = this.fb.group({
+      code: ['', Validators.required],
+      password: ['']
+    });
+  }
 
   ngOnInit() {
-    const user = this.auth.getUser();
-    this.username = user?.username || 'Пользователь';
+    this.loadRooms();
+  }
+
+  loadRooms() {
+    this.api.get<Room[]>('rooms/').subscribe({
+      next: (data) => {
+        this.myRooms.set(data);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  toggleCreate() {
+    this.showCreate = !this.showCreate;
+    this.showJoin = false;
+  }
+
+  toggleJoin() {
+    this.showJoin = !this.showJoin;
+    this.showCreate = false;
   }
 
   createRoom() {
-    if (!this.newRoomName.trim()) return;
-    this.loading = true;
-    this.error = '';
-    this.roomService.createRoom(this.newRoomName).subscribe({
+    if(this.createForm.invalid) return;
+    this.api.post<Room>('rooms/create/', this.createForm.value).subscribe({
       next: (room) => {
-        this.rooms.push(room);
-        this.newRoomName = '';
-        this.success = `Комната "${room.name}" создана! Код: ${room.code}`;
-        this.loading = false;
+        this.myRooms.update(rooms => [...rooms, room]);
+        this.showCreate = false;
+        this.createForm.reset({ category: 'UNIVERSITY' });
       },
-      error: () => {
-        this.error = 'Ошибка создания комнаты';
-        this.loading = false;
-      }
+      error: () => this.createError = 'Failed to create room'
     });
   }
 
   joinRoom() {
-    if (!this.joinCode.trim()) return;
-    this.loading = true;
-    this.error = '';
-    this.roomService.joinRoom(this.joinCode).subscribe({
-      next: (participant: any) => {
-        this.success = `Вы вошли в комнату!`;
-        this.joinCode = '';
-        this.loading = false;
-        this.router.navigate(['/rooms', participant.room, 'schedule']);
+    if(this.joinForm.invalid) return;
+    this.api.post<any>('rooms/join/', this.joinForm.value).subscribe({
+      next: (res) => {
+        // res contains Participant data. We can redirect straight to the room!
+        this.showJoin = false;
+        this.joinForm.reset();
+        this.router.navigate(['/rooms', res.room, 'schedule']);
       },
-      error: () => {
-        this.error = 'Неверный код комнаты';
-        this.loading = false;
+      error: (err) => {
+        if(err.status === 400 && err.error.password) {
+          this.joinError = 'Incorrect password for this room.';
+        } else if(err.status === 404 || err.status === 400) {
+          this.joinError = 'Invalid Code or Password';
+        } else {
+          this.joinError = 'Failed to join room';
+        }
       }
     });
   }
 
-  goToSchedule(roomId: number) {
-    this.router.navigate(['/rooms', roomId, 'schedule']);
-  }
-
-  logout() {
-    this.auth.logout().subscribe({
-      next: () => { this.auth.clearAll(); this.router.navigate(['/login']); },
-      error: () => { this.auth.clearAll(); this.router.navigate(['/login']); }
-    });
+  openRoom(room: Room) {
+    this.router.navigate(['/rooms', room.id, 'schedule']);
   }
 }

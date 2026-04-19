@@ -1,0 +1,64 @@
+<nav class="navbar">
+  <div class="logo">
+    <div class="logo-icon"></div>
+    <span>KBTU Schedule</span>
+  </div>
+  
+  <div class="nav-links">
+    <button class="theme-toggle" (click)="toggleTheme()">
+      <span *ngIf="themeService.isDark()">☀️ Light</span>
+      <span *ngIf="!themeService.isDark()">🌙 Dark</span>
+    </button>
+    <ng-container *ngIf="isLoggedIn; else loginLinks">
+      <a routerLink="/rooms" class="btn-secondary">My Rooms</a>
+      <a routerLink="/profile" class="btn-secondary">Profile</a>
+      <button (click)="logout()" class="btn-primary">Logout</button>
+    </ng-container>
+    <ng-template #loginLinks>
+      <a routerLink="/login" class="btn-secondary">Log In</a>
+      <a routerLink="/register" class="btn-primary">Get Started</a>
+    </ng-template>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-content">
+    <h1>Collaborative scheduling <br/> <span class="highlight">made premium.</span></h1>
+    <p class="subtitle">Plan your courses, organize tasks, and collaborate with your peers in real-time. Experience the most advanced university planner.</p>
+    
+    <div class="hero-actions">
+      <a routerLink="/register" class="btn-primary btn-large">Start Planning Free</a>
+      <a routerLink="/rooms" class="btn-secondary btn-large">Open Workspace</a>
+    </div>
+  </div>
+</header>
+
+<section class="features">
+  <div class="feature-card">
+    <div class="feature-icon bg-uni"></div>
+    <h3>University Mode</h3>
+    <p>Soft, academic-focused scheduling integrated with your major and semester.</p>
+  </div>
+  
+  <div class="feature-card">
+    <div class="feature-icon bg-work"></div>
+    <h3>Work Mode</h3>
+    <p>A cleaner, strict layout designed for productivity and project management.</p>
+  </div>
+  
+  <div class="feature-card">
+    <div class="feature-icon bg-collab"></div>
+    <h3>Real-time Collaboration</h3>
+    <p>Join rooms by code. See live presence, edit together, and drop voice chats anytime.</p>
+  </div>
+</section>
+
+<!-- Future-ready Voice Chat Demo Placeholder -->
+<div class="floating-voice-demo">
+  <div class="voice-status"></div>
+  <span>Voice Chat Ready Room</span>
+  <div class="voice-actions">
+    <button class="voice-btn mic-on"></button>
+    <button class="voice-btn leave"></button>
+  </div>
+</div>
