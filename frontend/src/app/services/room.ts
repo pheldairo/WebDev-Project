@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Room, Participant } from '../shared/interfaces';
+import { environment } from '../../environments/environment'; // Импортируем environment
 
 @Injectable({ providedIn: 'root' })
 export class RoomService {
-  private api = `http://${window.location.hostname}:8000/api`;
+  private api = environment.apiUrl; // Используем API URL из environment
 
   constructor(private http: HttpClient) {}
 

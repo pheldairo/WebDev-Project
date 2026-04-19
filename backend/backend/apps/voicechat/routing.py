@@ -1,7 +1,7 @@
-from django.urls import re_path
-
+from django.urls import path
 from . import consumers
 
 websocket_urlpatterns = [
-    re_path(r'ws/voicechat/(?P<room_name>\w+)/$', consumers.VoiceChatConsumer.as_asgi()),
+    # Используем path вместо re_path для простоты и избежания ошибок с регулярными выражениями
+    path('ws/voicechat/<str:room_name>/', consumers.VoiceChatConsumer.as_asgi()),
 ]

@@ -3,10 +3,11 @@ import { Injectable } from '@angular/core';
 import { ScheduleEntry } from '../shared/interfaces';
 import { timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ScheduleService {
-  private api = `http://${window.location.hostname}:8000/api`;
+  private api = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

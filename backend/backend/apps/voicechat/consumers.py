@@ -2,11 +2,6 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 class VoiceChatConsumer(AsyncWebsocketConsumer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.room_name = None
-        self.room_group_name = None
-
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'chat_{self.room_name}'
@@ -22,12 +17,12 @@ class VoiceChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # Покинуть группу комнаты
-        if self.room_group_name:
+        if hasattr(self, 'room_group_name'):
             await self.channel_layer.group_discard(
                 self.room_group_name,
                 self.channel_name
             )
-        print(f"WebSocket disconnected: {self.channel_name} from room {self.room_name} with code {close_code}")
+        print(f"WebSocket disconnected from room {self.room_name} with code {close_code}")
 
     # Получение сообщения от WebSocket
     async def receive(self, text_data):
@@ -38,12 +33,11 @@ class VoiceChatConsumer(AsyncWebsocketConsumer):
         print(f"Received message in room {self.room_name}: {message_type}")
 
         # Отправить сообщение в группу комнаты
-        # Все участники в группе получат это сообщение
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'webrtc_message',
-                'sender_channel_name': self.channel_name, # Чтобы отправитель не получал свое же сообщение
+                'sender_channel_name': self.channel_name,
                 'message_type': message_type,
                 'payload': message_payload,
             }
@@ -60,4 +54,3 @@ class VoiceChatConsumer(AsyncWebsocketConsumer):
             'type': event['message_type'],
             'payload': event['payload'],
         }))
-        print(f"Sent message from room {self.room_name}: {event['message_type']}")
