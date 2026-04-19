@@ -9,8 +9,19 @@ def generate_room_code():
 
 
 class Room(models.Model):
+    CATEGORY_CHOICES = [
+        ('UNIVERSITY', 'University'),
+        ('WORK', 'Work'),
+    ]
+
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=8, unique=True, default=generate_room_code)
+    password = models.CharField(max_length=128, blank=True, null=True)
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default='UNIVERSITY',
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

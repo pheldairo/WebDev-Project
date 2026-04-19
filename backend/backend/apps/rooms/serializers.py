@@ -4,14 +4,21 @@ from backend.apps.rooms.models import Room, Participant
 
 class RoomSerializer(serializers.ModelSerializer):
     participants_count = serializers.SerializerMethodField()
+    has_password = serializers.SerializerMethodField()
 
     class Meta:
         model = Room
-        fields = ['id', 'name', 'code', 'created_by', 'created_at', 'participants_count']
+        fields = [
+            'id', 'name', 'code', 'category', 'created_by',
+            'created_at', 'participants_count', 'has_password'
+        ]
         read_only_fields = ['id', 'code', 'created_by', 'created_at']
 
     def get_participants_count(self, obj):
         return obj.participants.count()
+
+    def get_has_password(self, obj):
+        return bool(obj.password)
 
 
 class ParticipantModelSerializer(serializers.ModelSerializer):
@@ -26,6 +33,7 @@ class ParticipantModelSerializer(serializers.ModelSerializer):
 
 class JoinRoomSerializer(serializers.Serializer):
     code = serializers.CharField(max_length=8)
+    password = serializers.CharField(max_length=128, required=False, allow_blank=True)
 
     def validate_code(self, value):
         if not Room.objects.filter(code=value).exists():
@@ -35,3 +43,5 @@ class JoinRoomSerializer(serializers.Serializer):
 
 class CreateRoomSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200)
+    category = serializers.ChoiceField(choices=Room.CATEGORY_CHOICES, default='UNIVERSITY')
+    password = serializers.CharField(max_length=128, required=False, allow_blank=True)
