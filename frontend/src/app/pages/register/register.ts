@@ -4,6 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
 import { ApiService } from '../../core/services/api.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-register',
@@ -16,6 +17,7 @@ export class RegisterComponent {
   public auth = inject(AuthService);
   public api = inject(ApiService);
   public router = inject(Router);
+  public themeService = inject(ThemeService);
 
   username = '';
   email = '';
@@ -25,7 +27,6 @@ export class RegisterComponent {
   loading = false;
 
   register() {
-
     this.loading = true;
     this.error = '';
 
@@ -37,7 +38,6 @@ export class RegisterComponent {
 
     this.auth.register(payload).subscribe({
       next: (res: any) => {
-        // The backend returns access/refresh tokens directly upon register!
         this.auth.saveTokens(res.access, res.refresh);
         this.auth.saveUser(res.user);
         this.router.navigate(['/rooms']);
@@ -47,5 +47,9 @@ export class RegisterComponent {
         this.loading = false;
       }
     });
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
   }
 }

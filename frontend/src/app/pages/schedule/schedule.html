@@ -2,7 +2,7 @@
   <!-- Top Navigation -->
   <nav class="navbar">
     <div class="left-nav">
-      <a routerLink="/rooms" class="back-btn">← Back</a>
+      <a (click)="goBack()" class="back-btn" style="cursor: pointer;">← Back</a>
       <div class="room-info" *ngIf="room()">
         <h2>{{ room()?.name }}</h2>
         <span class="category-badge">{{ room()?.category }} mode</span>
@@ -10,10 +10,18 @@
     </div>
     
     <div class="voice-controls">
+      <button class="theme-toggle" (click)="toggleTheme()" style="margin-right: 12px; border: none; background: transparent; cursor: pointer;">
+        {{ themeService.isDark() ? '☀️' : '🌙' }}
+      </button>
       <div class="voice-status" [ngClass]="{'active': isVoiceActive()}"></div>
       <button class="voice-btn" (click)="toggleVoice()">
         {{ isVoiceActive() ? 'Leave Voice' : 'Join Voice' }}
       </button>
+      <button class="mute-btn" *ngIf="isVoiceActive()" (click)="toggleMute()" [ngClass]="{'muted': isMuted()}">
+        {{ isMuted() ? '🔇 Unmute' : '🎤 Mute' }}
+      </button>
+      <button class="logout-btn-nav" (click)="logout()">Logout</button>
+      <div id="remote-audio-container" style="display: none;"></div>
     </div>
   </nav>
 

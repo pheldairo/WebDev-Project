@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
+import { AuthService } from '../../services/auth';
 import { ThemeService } from '../../core/services/theme.service';
 import { Room } from '../../shared/interfaces';
 
@@ -17,9 +18,11 @@ export class RoomsComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private authService = inject(AuthService);
   public themeService = inject(ThemeService);
 
   myRooms = signal<Room[]>([]);
+  currentUser = this.authService.getUser();
   loading = signal(true);
   
   createForm: FormGroup;
@@ -83,7 +86,6 @@ export class RoomsComponent implements OnInit {
     if(this.joinForm.invalid) return;
     this.api.post<any>('rooms/join/', this.joinForm.value).subscribe({
       next: (res) => {
-        // res contains Participant data. We can redirect straight to the room!
         this.showJoin = false;
         this.joinForm.reset();
         this.router.navigate(['/rooms', res.room, 'schedule']);
@@ -102,5 +104,26 @@ export class RoomsComponent implements OnInit {
 
   openRoom(room: Room) {
     this.router.navigate(['/rooms', room.id, 'schedule']);
+  }
+
+  deleteRoom(event: Event, roomId: number) {
+    event.stopPropagation(); // Prevents opening the room
+    if (confirm('Are you sure you want to delete this room? This action cannot be undone.')) {
+      this.api.delete(`rooms/${roomId}/delete/`).subscribe({
+        next: () => {
+          this.myRooms.update(rooms => rooms.filter(r => r.id !== roomId));
+        },
+        error: () => alert('Failed to delete room. You might not have permission.')
+      });
+    }
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
+  }
+
+  logout() {
+    this.authService.clearAll();
+    this.router.navigate(['/login']);
   }
 }

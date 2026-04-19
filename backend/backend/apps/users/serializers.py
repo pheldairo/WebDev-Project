@@ -8,10 +8,10 @@ class UserModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'profile_picture', 
-            'saved_slots'
+            'id', 'username', 'email', 'first_name', 'last_name', 
+            'bio', 'profile_picture', 'saved_slots'
         ]
-        read_only_fields = ['id', 'username', 'email']
+        read_only_fields = ['id']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -31,6 +31,20 @@ class LoginSerializer(serializers.Serializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
     class Meta:
         model = User
-        fields = ['profile_picture', 'saved_slots']
+        fields = ['username', 'first_name', 'last_name', 'email', 'bio', 'profile_picture', 'saved_slots', 'password']
+        extra_kwargs = {
+            'username': {'required': False},
+            'email': {'required': False}
+        }
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        if password:
+            instance.set_password(password)
+        
+        # Manually handle many-to-many if needed, though ModelSerializer usually handles it
+        return super().update(instance, validated_data)

@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { ThemeService } from '../../core/services/theme.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -14,6 +15,7 @@ import { CommonModule } from '@angular/common';
 export class LoginComponent {
   public auth = inject(AuthService);
   public router = inject(Router);
+  public themeService = inject(ThemeService);
 
   username = '';
   password = '';
@@ -34,5 +36,9 @@ export class LoginComponent {
         this.loading = false;
       }
     });
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
   }
 }

@@ -1,26 +1,77 @@
 <div class="page-container">
   <nav class="navbar" style="padding: 0 0 24px 0; background: transparent; border: none;">
-    <a routerLink="/rooms" class="btn-secondary">← Back to Lobby</a>
+    <div class="nav-links">
+      <a routerLink="/rooms" class="btn-secondary">← Back to Lobby</a>
+      <button class="btn-secondary" (click)="logout()">Logout</button>
+    </div>
   </nav>
 
   <div class="header">
-    <h1>Your Profile</h1>
-    <p>Setup your academic details for the schedule picker.</p>
+    <h1>Edit Profile</h1>
+    <p>Manage your account details and personalize your experience.</p>
+  </div>
+
+  <div class="loader-container" *ngIf="loading">
+    <div class="loader"></div>
+    <p>Fetching your details...</p>
   </div>
 
   <div class="card profile-card" *ngIf="!loading">
     <div class="profile-header">
-      <div class="avatar">{{ profile?.username?.charAt(0) | uppercase }}</div>
+      <div class="avatar-container" (click)="fileInput.click()">
+        <img *ngIf="previewUrl" [src]="previewUrl" class="avatar-img" />
+        <div *ngIf="!previewUrl" class="avatar-placeholder">
+          {{ profile?.username?.charAt(0) | uppercase }}
+        </div>
+        <div class="avatar-overlay">
+          <span>Change Avatar</span>
+        </div>
+      </div>
+      <input #fileInput type="file" (change)="onFileSelected($event)" style="display: none" accept="image/*" />
+      
       <div class="user-info">
         <h2>{{ profile?.username }}</h2>
-        <span class="email">{{ profile?.email }}</span>
+        <span class="email-sub">{{ profile?.email }}</span>
       </div>
     </div>
 
     <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="form">
+      <div class="form-grid">
+        <div class="input-group">
+          <label>First Name</label>
+          <input type="text" formControlName="first_name" placeholder="John" />
+        </div>
+        <div class="input-group">
+          <label>Last Name</label>
+          <input type="text" formControlName="last_name" placeholder="Doe" />
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Username</label>
+        <input type="text" formControlName="username" placeholder="johndoe" />
+      </div>
+
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" formControlName="email" placeholder="john@example.com" />
+      </div>
+
+      <div class="input-group">
+        <label>Bio</label>
+        <textarea formControlName="bio" placeholder="Tell us a little about yourself..." rows="4"></textarea>
+      </div>
+
+      <div class="input-group">
+        <label>New Password (leave empty to keep current)</label>
+        <input type="password" formControlName="password" placeholder="••••••••" />
+      </div>
+
       <div class="form-actions">
-        <button type="submit" class="btn-primary" style="display:none;">
+        <button type="submit" class="btn-primary" [disabled]="profileForm.invalid || loading">
+          {{ loading ? 'Saving...' : 'Save Changes' }}
         </button>
+        <span class="saved-badge" *ngIf="saved">✓ Profile Updated!</span>
       </div>
     </form>
 

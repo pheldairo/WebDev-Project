@@ -4,7 +4,11 @@
     <span>KBTU Schedule Lobby</span>
   </div>
   <div class="nav-links">
+    <button class="theme-toggle" (click)="toggleTheme()">
+      {{ themeService.isDark() ? '☀️ Light' : '🌙 Dark' }}
+    </button>
     <a routerLink="/profile" class="btn-secondary">Profile</a>
+    <button class="btn-secondary" (click)="logout()">Logout</button>
   </div>
 </nav>
 
@@ -54,7 +58,14 @@
     <div class="room-card card" *ngFor="let room of myRooms()" (click)="openRoom(room)" [ngClass]="room.category.toLowerCase()">
       <div class="room-top">
         <span class="category-badge">{{ room.category }}</span>
-        <span class="room-code">Code: {{ room.code }}</span>
+        <div class="room-top-right">
+          <span class="room-code">Code: {{ room.code }}</span>
+          <button *ngIf="room.created_by === currentUser?.id" 
+                  (click)="deleteRoom($event, room.id)" 
+                  class="delete-mini-btn" title="Delete Room">
+            🗑️
+          </button>
+        </div>
       </div>
       <h2 class="room-title">{{ room.name }}</h2>
       <div class="room-bottom">

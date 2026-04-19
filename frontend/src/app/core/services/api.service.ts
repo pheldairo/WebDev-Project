@@ -9,8 +9,14 @@ export class ApiService {
   private readonly baseUrl = `http://${window.location.hostname}:8000/api`;
   private readonly http = inject(HttpClient);
 
-  private getHeaders(): HttpHeaders {
-    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+  private getHeaders(body?: any): HttpHeaders {
+    let headers = new HttpHeaders();
+    
+    // If body is NOT FormData, set JSON content type
+    if (!(body instanceof FormData)) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+
     const token = localStorage.getItem('access_token');
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
@@ -23,11 +29,11 @@ export class ApiService {
   }
 
   post<T>(endpoint: string, body: any): Observable<T> {
-    return this.http.post<T>(`${this.baseUrl}/${endpoint}`, body, { headers: this.getHeaders() });
+    return this.http.post<T>(`${this.baseUrl}/${endpoint}`, body, { headers: this.getHeaders(body) });
   }
 
   patch<T>(endpoint: string, body: any): Observable<T> {
-    return this.http.patch<T>(`${this.baseUrl}/${endpoint}`, body, { headers: this.getHeaders() });
+    return this.http.patch<T>(`${this.baseUrl}/${endpoint}`, body, { headers: this.getHeaders(body) });
   }
 
   delete<T>(endpoint: string): Observable<T> {

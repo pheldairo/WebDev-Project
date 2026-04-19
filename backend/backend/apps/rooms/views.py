@@ -101,3 +101,16 @@ class RoomParticipantsView(ListAPIView):
 def leave_room(request, room_id):
     Participant.objects.filter(user=request.user, room_id=room_id).delete()
     return Response(status=status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_room(request, room_id):
+    try:
+        room = Room.objects.get(id=room_id)
+        if room.created_by != request.user:
+            return Response({'detail': 'Only the creator can delete this room.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        room.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except Room.DoesNotExist:
+        return Response({'detail': 'Room not found.'}, status=status.HTTP_404_NOT_FOUND)

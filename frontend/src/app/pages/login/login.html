@@ -1,4 +1,11 @@
 <div class="auth-layout">
+  <div class="auth-top-nav">
+    <a routerLink="/" class="back-link">← Back to Home</a>
+    <button class="theme-toggle-mini" (click)="toggleTheme()">
+      {{ themeService.isDark() ? '☀️' : '🌙' }}
+    </button>
+  </div>
+
   <div class="auth-card">
     <div class="auth-header">
       <h1>Welcome Back</h1>

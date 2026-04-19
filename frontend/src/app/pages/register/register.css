@@ -1,70 +1,101 @@
 .auth-layout {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   background: var(--bg-primary);
   padding: 24px;
 }
 
+.auth-top-nav {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.back-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: var(--text-primary);
+}
+
+.theme-toggle-mini {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-toggle-mini:hover {
+  transform: scale(1.1);
+}
+
 .auth-card {
   width: 100%;
   max-width: 440px;
+  padding: 40px;
   background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  padding: 48px;
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
-  text-align: center;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 .auth-header {
   margin-bottom: 32px;
+  text-align: center;
 }
 
 .auth-header h1 {
-  font-size: 2rem;
+  font-size: 1.875rem;
+  font-weight: 700;
   margin-bottom: 8px;
+  color: var(--text-primary);
 }
 
 .auth-header p {
   color: var(--text-secondary);
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  text-align: left;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-group label {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.form-error {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  border: 1px solid #EF4444;
 }
 
 .switch-auth {
-  margin-top: 32px;
-  color: var(--text-secondary);
+  margin-top: 24px;
+  text-align: center;
   font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 .switch-auth a {
+  color: var(--university-color);
+  text-decoration: none;
   font-weight: 600;
+}
+
+.switch-auth a:hover {
+  text-decoration: underline;
+}
+
+.form-error {
+  background: #FEF2F2;
+  color: #DC2626;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+  text-align: center;
 }

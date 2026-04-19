@@ -72,7 +72,7 @@
   background-color: #9CA3AF;
 }
 
-.voice-btn {
+.voice-btn, .logout-btn-nav {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -81,6 +81,35 @@
   cursor: pointer;
   padding: 0;
   outline: none;
+}
+
+.logout-btn-nav {
+  color: #EF4444; /* Red color for logout */
+}
+
+.mute-btn {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  padding: 6px 12px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mute-btn:hover {
+  background: var(--bg-secondary);
+}
+
+.mute-btn.muted {
+  background: #FEE2E2;
+  color: #EF4444;
+  border-color: #FCA5A5;
 }
 
 .voice-status.active {
