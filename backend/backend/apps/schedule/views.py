@@ -74,7 +74,7 @@ class ConfirmSelectionView(APIView):
             # Check if an entry for this slot already exists for this user in this room
             if not ScheduleEntry.objects.filter(room=room, academic_slot=slot, created_by=request.user).exists():
                 entry = ScheduleEntry.objects.create(
-                    subject=slot.course.name,
+                    subject=slot.subject,
                     teacher=slot.teacher,
                     day=slot.day,
                     time_slot=slot.time_slot,
