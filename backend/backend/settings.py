@@ -7,7 +7,6 @@ SECRET_KEY = 'django-insecure-university-schedule-secret-key-change-in-productio
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'daphne', # Daphne должен быть первым
@@ -85,6 +84,26 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+# Разрешаем Django принимать запросы с любых адресов (для теста это ок)
+ALLOWED_HOSTS = ['*']
+
+# Настройка CORS (чтобы Angular мог общаться с Django)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Важно для POST-запросов (создание комнат, вход)
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.dev",
+    "http://*.ngrok-free.dev",
+    "https://*.ngrok-free.app",
+    "http://*.ngrok-free.app",
+    "https://*.ngrok.app",
+    "http://*.ngrok.app",
+]
+
+# Корректно определяем HTTPS при проксировании через ngrok.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -117,5 +136,3 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
-
-CORS_ALLOW_ALL_ORIGINS = True
