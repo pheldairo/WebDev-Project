@@ -9,7 +9,7 @@ class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = [
-            'id', 'name', 'code', 'category', 'created_by',
+            'id', 'name', 'code', 'created_by',
             'created_at', 'participants_count', 'has_password'
         ]
         read_only_fields = ['id', 'code', 'created_by', 'created_at']
@@ -31,17 +31,30 @@ class ParticipantModelSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'color', 'joined_at']
 
 
+class CreateRoomSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=200)
+    # Добавили allow_null=True и дефолтное значение
+    password = serializers.CharField(
+        max_length=128,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        default=""
+    )
+
+
 class JoinRoomSerializer(serializers.Serializer):
-    code = serializers.CharField(max_length=8)
-    password = serializers.CharField(max_length=128, required=False, allow_blank=True)
+    code = serializers.CharField(max_length=6)
+    # Здесь тоже лучше добавить allow_null
+    password = serializers.CharField(
+        max_length=128,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        default=""
+    )
 
     def validate_code(self, value):
         if not Room.objects.filter(code=value).exists():
             raise serializers.ValidationError('Room with this code does not exist.')
         return value
-
-
-class CreateRoomSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=200)
-    category = serializers.ChoiceField(choices=Room.CATEGORY_CHOICES, default='UNIVERSITY')
-    password = serializers.CharField(max_length=128, required=False, allow_blank=True)

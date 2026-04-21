@@ -1,77 +1,95 @@
 <nav class="navbar">
   <div class="logo" routerLink="/" style="cursor: pointer;">
     <div class="logo-icon"></div>
-    <span>KBTU Schedule Lobby</span>
+    <span>KBTU Schedule</span>
   </div>
-  <div class="nav-links">
-    <button class="theme-toggle" (click)="toggleTheme()">
-      {{ themeService.isDark() ? '☀️ Light' : '🌙 Dark' }}
+  <div class="nav-links" style="display: flex; gap: 12px; align-items: center;">
+    <button class="btn-secondary" (click)="toggleTheme()" style="padding: 8px 12px;">
+      {{ themeService.isDark() ? '☀️' : '🌙' }}
     </button>
     <a routerLink="/profile" class="btn-secondary">Profile</a>
-    <button class="btn-secondary" (click)="logout()">Logout</button>
+    <button class="btn-secondary" (click)="logout()" style="color: #ef4444;">Logout</button>
   </div>
 </nav>
 
 <div class="page-container">
-  <div class="lobby-header">
+  <header class="lobby-header">
     <div class="header-content">
       <h1>Your Rooms</h1>
-      <p>Join or create spaces to collaborate on schedules.</p>
+      <p style="color: var(--text-secondary); margin-top: 4px;">Join or create spaces to collaborate on schedules.</p>
     </div>
     <div class="header-actions">
-      <button class="btn-secondary" (click)="toggleJoin()">Join Code</button>
-      <button class="btn-primary" (click)="toggleCreate()">+ New Room</button>
+      <button class="btn-secondary" [class.active-btn]="showJoin" (click)="toggleJoin()">Join with Code</button>
+      <button class="btn-primary" [class.active-btn]="showCreate" (click)="toggleCreate()">+ Create Room</button>
     </div>
-  </div>
+  </header>
 
-  <div class="action-panel card" *ngIf="showCreate">
-    <h3>Create a New Room</h3>
-    <form [formGroup]="createForm" (ngSubmit)="createRoom()" class="form">
+  <!-- Create Panel -->
+  <div class="action-panel" *ngIf="showCreate">
+    <h3 style="margin-bottom: 20px;">Create a New Room</h3>
+    <form [formGroup]="createForm" (ngSubmit)="createRoom()">
       <div class="form-row">
         <input class="input" placeholder="Room Name" formControlName="name" />
-        <input class="input" placeholder="Password (Optional)" formControlName="password" />
+        <input class="input" placeholder="Password (Optional)" type="password" formControlName="password" />
       </div>
       <div class="error" *ngIf="createError">{{ createError }}</div>
-      <button type="submit" class="btn-primary" [disabled]="createForm.invalid">Create</button>
+      <div style="display: flex; gap: 12px;">
+        <button type="submit" class="btn-primary" [disabled]="isCreating || createForm.invalid">
+          {{ isCreating ? 'Creating...' : 'Create Room' }}
+        </button>
+        <button type="button" class="btn-secondary" (click)="showCreate = false">Cancel</button>
+      </div>
     </form>
   </div>
 
-  <div class="action-panel card" *ngIf="showJoin">
-    <h3>Join a Room</h3>
-    <form [formGroup]="joinForm" (ngSubmit)="joinRoom()" class="form">
+  <!-- Join Panel -->
+  <div class="action-panel" *ngIf="showJoin">
+    <h3 style="margin-bottom: 20px;">Join a Room</h3>
+    <form [formGroup]="joinForm" (ngSubmit)="joinRoom()">
       <div class="form-row">
-        <input class="input" placeholder="Room Code (e.g. XYZ123)" formControlName="code" />
-        <input class="input" placeholder="Password (if required)" type="password" formControlName="password" />
+        <input class="input" placeholder="Room Code (e.g. XYZ123)" formControlName="code" style="text-transform: uppercase;" maxlength="6" />
+        <input class="input" placeholder="Password (if any)" type="password" formControlName="password" />
       </div>
       <div class="error" *ngIf="joinError">{{ joinError }}</div>
-      <button type="submit" class="btn-primary" [disabled]="joinForm.invalid">Join Room</button>
+      <div style="display: flex; gap: 12px;">
+        <button type="submit" class="btn-primary" [disabled]="isJoining || joinForm.invalid">
+          {{ isJoining ? 'Joining...' : 'Join Room' }}
+        </button>
+        <button type="button" class="btn-secondary" (click)="showJoin = false">Cancel</button>
+      </div>
     </form>
   </div>
 
-  <div class="loader" *ngIf="loading()">Loading spaces...</div>
+  <!-- Loading State -->
+  <div class="loader" *ngIf="loading()" style="font-size: 1.1rem; font-weight: 500;">
+    <span class="spinner"></span> Loading your spaces...
+  </div>
 
+  <!-- Rooms Grid -->
   <div class="rooms-grid" *ngIf="!loading()">
     <div *ngIf="myRooms().length === 0" class="empty-state">
-      You haven't joined any rooms yet. Create or join one to begin!
+      <p style="font-size: 1.2rem; margin-bottom: 16px;">No rooms found.</p>
+      <button class="btn-primary" (click)="toggleCreate()">Create your first room</button>
     </div>
 
-    <div class="room-card card" *ngFor="let room of myRooms()" (click)="openRoom(room)" [ngClass]="room.category.toLowerCase()">
+    <div class="room-card" *ngFor="let room of myRooms()" (click)="openRoom(room)">
       <div class="room-top">
-        <span class="category-badge">{{ room.category }}</span>
-        <div class="room-top-right">
-          <span class="room-code">Code: {{ room.code }}</span>
-          <button *ngIf="room.created_by === currentUser?.id" 
-                  (click)="deleteRoom($event, room.id)" 
-                  class="delete-mini-btn" title="Delete Room">
-            🗑️
-          </button>
-        </div>
+        <span class="room-code">#{{ room.code }}</span>
+        <button *ngIf="room.created_by === currentUser?.id"
+                (click)="deleteRoom($event, room.id)"
+                class="delete-mini-btn" title="Delete Room">
+          ✕
+        </button>
       </div>
+
       <h2 class="room-title">{{ room.name }}</h2>
+
       <div class="room-bottom">
         <div class="participant-count">
-          <span class="dot"></span> {{ room.participants_count }} Online
+          <span class="dot" [class.online]="room.participants_count > 0"></span>
+          <span>{{ room.participants_count }} Online</span>
         </div>
+        <span style="font-size: 0.8rem; color: var(--text-tertiary);">Open →</span>
       </div>
     </div>
   </div>

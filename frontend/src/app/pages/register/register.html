@@ -1,38 +1,72 @@
 <div class="auth-layout">
   <div class="auth-top-nav">
     <a routerLink="/" class="back-link">← Back to Home</a>
-    <button class="theme-toggle-mini" (click)="toggleTheme()">
+    <button class="theme-toggle-mini" (click)="toggleTheme()" type="button">
       {{ themeService.isDark() ? '☀️' : '🌙' }}
     </button>
   </div>
 
   <div class="auth-card">
     <div class="auth-header">
-      <h1>Create an Account</h1>
+      <h1>Create Account</h1>
       <p>Set up your profile to start scheduling</p>
     </div>
 
-    <form (ngSubmit)="register()" class="form">
+    <form [formGroup]="registerForm" (ngSubmit)="register()" class="form">
       <div class="form-group">
-        <label>Username</label>
-        <input [(ngModel)]="username" name="username" class="input" type="text" placeholder="Your username" required />
+        <label for="username">Username</label>
+        <input
+          id="username"
+          formControlName="username"
+          class="input"
+          [class.invalid]="f['username'].invalid && f['username'].touched"
+          type="text"
+          placeholder="Choose a unique username"
+        />
+        <div *ngIf="f['username'].invalid && f['username'].touched" class="field-error">
+          <span *ngIf="f['username'].errors?.['required']">Username is required</span>
+          <span *ngIf="f['username'].errors?.['minlength']">Minimum 3 characters required</span>
+        </div>
       </div>
 
       <div class="form-group">
-        <label>Email Address</label>
-        <input [(ngModel)]="email" name="email" class="input" type="email" placeholder="you@example.com" required />
+        <label for="email">Email Address</label>
+        <input
+          id="email"
+          formControlName="email"
+          class="input"
+          [class.invalid]="f['email'].invalid && f['email'].touched"
+          type="email"
+          placeholder="name@university.edu"
+        />
+        <div *ngIf="f['email'].invalid && f['email'].touched" class="field-error">
+          <span *ngIf="f['email'].errors?.['required']">Email is required</span>
+          <span *ngIf="f['email'].errors?.['email']">Please enter a valid email</span>
+        </div>
       </div>
 
       <div class="form-group">
-        <label>Password</label>
-        <input [(ngModel)]="password" name="password" class="input" type="password" placeholder="••••••••" required />
+        <label for="password">Password</label>
+        <input
+          id="password"
+          formControlName="password"
+          class="input"
+          [class.invalid]="f['password'].invalid && f['password'].touched"
+          type="password"
+          placeholder="At least 8 characters"
+        />
+        <div *ngIf="f['password'].invalid && f['password'].touched" class="field-error">
+          <span *ngIf="f['password'].errors?.['required']">Password is required</span>
+          <span *ngIf="f['password'].errors?.['minlength']">Password is too short</span>
+        </div>
       </div>
 
+      <!-- Общая ошибка от бэкенда -->
       <div *ngIf="error" class="form-error">
         {{ error }}
       </div>
 
-      <button type="submit" class="btn-primary w-full block mt-2" [disabled]="loading || !username || !password || !email">
+      <button type="submit" class="btn-auth" [disabled]="loading || registerForm.invalid">
         {{ loading ? 'Creating Account...' : 'Sign Up' }}
       </button>
     </form>

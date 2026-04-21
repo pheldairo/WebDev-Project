@@ -5,23 +5,13 @@ from django.conf import settings
 
 
 def generate_room_code():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 
 class Room(models.Model):
-    CATEGORY_CHOICES = [
-        ('UNIVERSITY', 'University'),
-        ('WORK', 'Work'),
-    ]
-
     name = models.CharField(max_length=200)
-    code = models.CharField(max_length=8, unique=True, default=generate_room_code)
+    code = models.CharField(max_length=6, unique=True, default=generate_room_code) # Делаем код 6-значным, как на фронте
     password = models.CharField(max_length=128, blank=True, null=True)
-    category = models.CharField(
-        max_length=20,
-        choices=CATEGORY_CHOICES,
-        default='UNIVERSITY',
-    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -51,4 +41,4 @@ class Participant(models.Model):
         unique_together = ('user', 'room')
 
     def __str__(self):
-        return f'{self.user.username} in {self.room.code}'
+        return f'{self.user.username} in {self.room.name}'

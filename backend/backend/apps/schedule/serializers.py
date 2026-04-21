@@ -1,31 +1,28 @@
 from rest_framework import serializers
 from backend.apps.schedule.models import ScheduleEntry
+from backend.apps.rooms.models import Participant
 
 
 class ScheduleEntrySerializer(serializers.ModelSerializer):
     created_by_username = serializers.CharField(source='created_by.username', read_only=True)
     room_code = serializers.CharField(source='room.code', read_only=True)
+    created_by_color = serializers.SerializerMethodField() # Новое поле
 
     class Meta:
         model = ScheduleEntry
         fields = [
-            'id',
-            'subject',
-            'teacher',
-            'day',
-            'time_slot',
-            'room',
-            'room_code',
-            'description',
-            'academic_slot',
-            'entry_type',
-            'is_private',
-            'created_by',
-            'created_by_username',
-            'created_at',
-            'updated_at',
+            'id', 'subject', 'teacher', 'day', 'time_slot',
+            'room', 'room_code', 'description', 'academic_slot',
+            'entry_type', 'is_private', 'created_by',
+            'created_by_username', 'created_by_color',
+            'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']
+
+    def get_created_by_color(self, obj):
+        participant = Participant.objects.filter(user=obj.created_by, room=obj.room).first()
+        return participant.color if participant else '#6366f1'
+
 
 
 class ScheduleEntryWriteSerializer(serializers.Serializer):

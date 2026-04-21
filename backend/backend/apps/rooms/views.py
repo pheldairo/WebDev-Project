@@ -67,7 +67,6 @@ class CreateRoomView(APIView):
             
             room = Room.objects.create(
                 name=serializer.validated_data['name'],
-                category=serializer.validated_data.get('category', 'UNIVERSITY'),
                 password=hashed_password,
                 created_by=request.user,
             )

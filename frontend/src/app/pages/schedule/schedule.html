@@ -1,25 +1,36 @@
-<div class="scheduler-layout" [ngClass]="room()?.category?.toLowerCase()">
+<div class="scheduler-layout">
   <!-- Top Navigation -->
   <nav class="navbar">
     <div class="left-nav">
-      <a (click)="goBack()" class="back-btn" style="cursor: pointer;">← Back</a>
+      <a (click)="goBack()" class="back-btn" title="Go to Lobby">
+        <span class="icon">←</span> Lobby
+      </a>
       <div class="room-info" *ngIf="room()">
         <h2>{{ room()?.name }}</h2>
-        <span class="category-badge">{{ room()?.category }} mode</span>
+        <!-- Добавили возможность копирования кода -->
+        <span class="room-code-tag" (click)="copyRoomCode()" title="Click to copy code">
+          #{{ room()?.code }}
+          <span class="copy-hint">copy</span>
+        </span>
       </div>
     </div>
-    
+
     <div class="voice-controls">
-      <button class="theme-toggle" (click)="toggleTheme()" style="margin-right: 12px; border: none; background: transparent; cursor: pointer;">
+      <button class="theme-toggle-btn" (click)="toggleTheme()" [title]="themeService.isDark() ? 'Switch to Light' : 'Switch to Dark'">
         {{ themeService.isDark() ? '☀️' : '🌙' }}
       </button>
-      <div class="voice-status" [ngClass]="{'active': isVoiceActive()}"></div>
-      <button class="voice-btn" (click)="toggleVoice()">
-        {{ isVoiceActive() ? 'Leave Voice' : 'Join Voice' }}
-      </button>
-      <button class="mute-btn" *ngIf="isVoiceActive()" (click)="toggleMute()" [ngClass]="{'muted': isMuted()}">
-        {{ isMuted() ? '🔇 Unmute' : '🎤 Mute' }}
-      </button>
+
+      <div class="voice-bundle">
+        <div class="voice-status" [class.active]="isVoiceActive()"></div>
+        <button class="voice-btn" (click)="toggleVoice()">
+          {{ isVoiceActive() ? 'Leave Voice' : 'Join Voice' }}
+        </button>
+        <button class="mute-btn" *ngIf="isVoiceActive()" (click)="toggleMute()" [class.muted]="isMuted()">
+          <span class="icon">{{ isMuted() ? '🔇' : '🎤' }}</span>
+          {{ isMuted() ? 'Unmute' : 'Mute' }}
+        </button>
+      </div>
+
       <button class="logout-btn-nav" (click)="logout()">Logout</button>
       <div id="remote-audio-container" style="display: none;"></div>
     </div>
@@ -28,65 +39,115 @@
   <!-- Sidebar vs Main Content -->
   <div class="main-content">
     <aside class="tools-sidebar">
+
+      <!-- Live Presence -->
       <div class="collaboration-status card">
-        <h3>Live Presence</h3>
+        <div class="card-header">
+          <h3>Live Presence</h3>
+          <span class="count-badge">{{ participants().length }}</span>
+        </div>
         <ul class="user-list">
-          <li *ngIf="participants().length === 0"><span class="dot outline"></span> Waiting for others...</li>
-          <li *ngFor="let p of participants()">
-            <span class="dot" [style.background-color]="p.color"></span> 
-            {{ p.username }}
+          <li *ngIf="participants().length === 0" class="waiting">
+            <span class="dot outline"></span> Waiting for others...
+          </li>
+          <li *ngFor="let p of participants()" class="user-item" [class.is-me]="p.user === currentUser?.id">
+            <span class="user-color-pill" [style.background-color]="p.color"></span>
+            <span class="user-name">{{ p.username }}</span>
+            <span class="you-label" *ngIf="p.user === currentUser?.id">YOU</span>
           </li>
         </ul>
       </div>
 
+      <!-- Academic Slots Selection -->
       <div class="academic-list card">
         <h3>🎓 Academic Slots</h3>
-        <div *ngIf="academicSlots().length === 0" class="empty-state">
-          No academic slots available at this time.
+
+        <div *ngIf="academicSlots().length === 0" class="empty-state-mini">
+          <p>No slots found.</p>
         </div>
-        <div class="slot-list sidebar-list">
-          <label class="slot-item" *ngFor="let slot of academicSlots()">
-            <input type="checkbox" [checked]="selectedSlots.has(slot.id)" (change)="toggleSlotSelection(slot.id)" />
-            <div class="slot-details">
-              <strong>{{ slot.subject }}</strong> - {{ slot.day }} {{ slot.time_slot }}
-            </div>
-          </label>
+
+        <div class="slot-selection" *ngIf="academicSlots().length > 0">
+          <label class="form-label">Select a subject:</label>
+
+          <!-- Добавили селект с поиском (если используешь сторонние либы, тут может быть ng-select, но пока оставим нативный) -->
+          <select
+            id="slotSelect"
+            class="slot-input"
+            (change)="onSlotSelectChange($event)">
+            <option value="" disabled selected>-- Choose from list --</option>
+            <option *ngFor="let slot of academicSlots()" [value]="slot.id">
+              {{ slot.subject }} | {{ slot.day }}
+            </option>
+          </select>
+
+          <button
+            class="btn-primary w-full mt-2"
+            [disabled]="selectedSlots.size === 0 || loading()"
+            (click)="confirmSelection()">
+            <span *ngIf="!loading()">Add to Schedule</span>
+            <span *ngIf="loading()">Adding...</span>
+          </button>
         </div>
-        <button class="btn-primary w-full block mt-2" [disabled]="selectedSlots.size === 0" (click)="confirmSelection()">Sync to Schedule</button>
       </div>
     </aside>
 
+    <!-- Main Schedule Grid -->
     <div class="grid-container card">
-      <div class="loader" *ngIf="loading()">Syncing...</div>
-      
-      <div class="timeline" *ngIf="!loading()">
+      <!-- Overlay Loader -->
+      <div class="loader-overlay" *ngIf="loading()">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="timeline" *ngIf="!loading() || entries().length > 0">
         <!-- Timeline Header -->
         <div class="timeline-header">
           <div class="time-column-header">Time</div>
-          <div class="day-column-header" *ngFor="let day of days">{{ day }}</div>
+          <div class="day-column-header" *ngFor="let day of days" [class.is-today]="isToday(day)">
+            {{ day }}
+          </div>
         </div>
-        
-        <!-- Timeline Body (Rows for each Time Slot) -->
+
+        <!-- Timeline Body -->
         <div class="timeline-row" *ngFor="let slot of uniqueTimeSlots()">
           <div class="time-label">{{ slot }}</div>
-          
+
           <div class="day-cell" *ngFor="let day of days">
-            <!-- Render entries that match this day AND this time slot -->
-            <div class="entry-card shadow-sm" *ngFor="let entry of getEntriesForDayAndSlot(day, slot)" 
-                 [ngClass]="[entry.entry_type.toLowerCase(), entry.is_private ? 'private' : 'shared']">
-              <div class="entry-subject">{{ entry.subject }}</div>
+            <!-- Schedule Entry Card -->
+            <div class="entry-card shadow-sm"
+                 *ngFor="let entry of getEntriesForDayAndSlot(day, slot)"
+                 [style.border-left-color]="entry.created_by_color"
+                 [style.background-color]="entry.created_by_color + '15'">
+
+              <div class="entry-header">
+                <span class="entry-subject" [title]="entry.subject">{{ entry.subject }}</span>
+                <!-- Кнопка удаления (только для владельца) -->
+                <button *ngIf="entry.created_by === currentUser?.id"
+                        (click)="deleteEntry(entry.id)"
+                        class="entry-delete-btn"
+                        title="Remove from schedule">
+                  ×
+                </button>
+              </div>
+
               <div class="entry-meta">
-                <span *ngIf="entry.teacher">{{ entry.teacher }}</span>
-                <span class="owner">by {{ entry.created_by_username }}</span>
-                <span class="privacy" *ngIf="entry.is_private">🔒 Private</span>
+                <span class="teacher" *ngIf="entry.teacher">{{ entry.teacher }}</span>
+
+                <div class="owner-tag">
+                  <span class="owner-dot" [style.background-color]="entry.created_by_color"></span>
+                  <span class="owner-name">{{ entry.created_by_username }}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- Empty state inside table -->
+        <div *ngIf="uniqueTimeSlots().length === 0" class="empty-schedule-v2">
+          <div class="empty-icon">📅</div>
+          <p>Schedule is empty</p>
+          <small>Use the sidebar to pick your academic slots and sync them here.</small>
+        </div>
       </div>
     </div>
   </div>
 </div>
-
-

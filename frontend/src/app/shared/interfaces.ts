@@ -47,6 +47,7 @@ export interface ScheduleEntry {
   entry_type: 'NOTE' | 'ACADEMIC';
   is_private: boolean;
   created_by_username: string;
+  created_by_color: string;
   updated_at?: string;
 }
 

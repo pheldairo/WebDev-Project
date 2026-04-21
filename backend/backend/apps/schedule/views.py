@@ -82,7 +82,7 @@ class ConfirmSelectionView(APIView):
                     academic_slot=slot,
                     created_by=request.user,
                     entry_type='ACADEMIC',
-                    is_private=True # Academic slots are private to the user
+                    is_private=False # Academic slots are private to the user
                 )
                 new_entries.append(entry)
                 
